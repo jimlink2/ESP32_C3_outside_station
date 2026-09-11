@@ -350,8 +350,11 @@ Serial.println(windGustMPH);
 
         packet += String(rainTips);
 
-        packet += "</OUT>";
+        uint32_t uptimeSec = millis() / 1000;
+        packet += ",";
+        packet += String(uptimeSec);
 
+        packet += "</OUT>";
         //Serial.print("Payload length = ");
         //Serial.println(packet.length());
 
@@ -361,6 +364,9 @@ Serial.println(windGustMPH);
         //Serial.print("CMD length = ");
         //Serial.println(cmd.length());
         //Serial.println(cmd);
+        Serial.println();
+        Serial.print("UptimeSec = ");
+        Serial.println(uptimeSec);
 
         sendLoRaCmd(cmd);
 
