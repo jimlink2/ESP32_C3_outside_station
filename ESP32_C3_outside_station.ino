@@ -7,6 +7,7 @@
 // ------------------------------------------------------------
 
 #include <Arduino.h>
+#include <esp_system.h>
 
 // ---------------- PIN DEFINITIONS ----------------
 #define PIN_WIND     10    // Wind speed reed switch (interrupt)
@@ -41,6 +42,9 @@ const float INCHES_PER_TIP = 0.01;
 
 // ---------------- LORA SERIAL ----------------
 HardwareSerial LoRaSerial(1);
+
+// ------------- LORA flag ---------------
+bool sendStatusReply = false;
 
 // ---------------- INTERRUPTS ----------------
 void IRAM_ATTR windISR() {
@@ -214,6 +218,50 @@ void loop() {
 
     uint32_t now = millis();
 
+    // Get packets SENT FROM THE MEGA:
+    while (LoRaSerial.available())
+    {
+        String line = LoRaSerial.readStringUntil('\n');
+        line.trim();
+
+        if (line.length())
+        {
+            Serial.println();
+            Serial.print("LoRa RX: ");
+            Serial.println(line);
+            Serial.println();
+
+            if (line.indexOf("<STATUS?>") >= 0)
+            {
+                sendStatusReply = true;
+            }
+        }
+    }
+    
+    if (sendStatusReply)
+    {
+        sendStatusReply = false;
+
+        uint32_t uptimeSec = millis() / 1000;
+
+        String reply =
+            "<STATUS>," +
+            String(uptimeSec);
+
+        String cmd =
+            "AT+SEND=0," +
+            String(reply.length()) +
+            "," +
+            reply;
+
+        sendLoRaCmd(cmd);
+
+        Serial.println();
+        Serial.print("STATUS reply sent: ");
+        Serial.println(reply);
+        Serial.println();
+    }
+    
     // ---------------- WIND & RAIN CALC EVERY 1 SECOND ----------------
     if (now - lastCalc >= 1000) {
         lastCalc = now;
