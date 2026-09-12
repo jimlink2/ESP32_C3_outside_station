@@ -8,6 +8,7 @@
 
 #include <Arduino.h>
 #include <esp_system.h>
+#include <esp_task_wdt.h>
 
 // ---------------- PIN DEFINITIONS ----------------
 #define PIN_WIND     10    // Wind speed reed switch (interrupt)
@@ -198,6 +199,17 @@ void setup()
         rainHistory[i] = rainTips;
     }
 
+    // Watchdog init
+    esp_task_wdt_config_t wdt_config = {
+        .timeout_ms = 30000,
+        .idle_core_mask = 0,
+        .trigger_panic = true
+    };
+    esp_task_wdt_init(&wdt_config);
+    esp_task_wdt_add(NULL);
+
+    Serial.println("Watchdog enabled (30 sec)");
+
     Serial.println("STEP 6");
     Serial.println("SETUP COMPLETE");
     Serial.println("Outdoor ESP32-C3 Weather Node Ready.");
@@ -217,6 +229,9 @@ void loop() {
     static uint32_t lastSend = 0;
 
     uint32_t now = millis();
+
+    // Watchdog reset in each loop...
+    esp_task_wdt_reset();
 
     // Get packets SENT FROM THE MEGA:
     while (LoRaSerial.available())
