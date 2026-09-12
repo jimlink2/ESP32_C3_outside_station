@@ -235,9 +235,34 @@ void loop() {
             {
                 sendStatusReply = true;
             }
+
+            if (line.indexOf("<REBOOT>") >= 0)
+            {
+                Serial.println();
+                Serial.println("Remote reboot requested");
+
+                // Tell the Mega we're about to reboot
+                String reply = "<REBOOTING>";
+
+                String cmd =
+                    "AT+SEND=0," +
+                    String(reply.length()) +
+                    "," +
+                    reply;
+
+                sendLoRaCmd(cmd);
+
+                Serial.println("REBOOTING reply sent");
+
+                Serial.flush();
+
+                delay(500);
+
+                ESP.restart();
+            }
         }
     }
-    
+
     if (sendStatusReply)
     {
         sendStatusReply = false;
