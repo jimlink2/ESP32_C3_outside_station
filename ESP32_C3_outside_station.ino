@@ -164,6 +164,8 @@ void setup()
 
     Serial.println("STEP 3 -- after calling initLoRa()");
 
+    analogSetPinAttenuation(PIN_VANE, ADC_11db);
+
     pinMode(PIN_WIND, INPUT_PULLUP);
 
     pinMode(PIN_RAIN, INPUT_PULLUP);
@@ -442,6 +444,9 @@ Serial.println(windGustMPH);
         packet += ",";
         packet += String(uptimeSec);
 
+        // packet += ",";
+        // packet += String(adc);
+        
         packet += "</OUT>";
         //Serial.print("Payload length = ");
         //Serial.println(packet.length());
